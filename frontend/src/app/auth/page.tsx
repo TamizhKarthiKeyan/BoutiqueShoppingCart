@@ -1,12 +1,12 @@
 "use client";
 
-import Login from "@/components/login/Login";
 import React, { useEffect, useState } from "react";
 import "@radix-ui/themes/styles.css";
 import { Theme } from "@radix-ui/themes";
 import { oktaConfig } from '../../oktaConfig';
 import { OktaAuth } from "@okta/okta-auth-js";
 import dynamic from 'next/dynamic';
+import Login from "@/components/login/Login";
 
 // Dynamically import the OktaWrapper component with no SSR
 const OktaWrapper = dynamic(
@@ -17,6 +17,7 @@ const OktaWrapper = dynamic(
 const Auth = () => {
   const [oktaAuth, setOktaAuth] = useState<OktaAuth | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Mark that we're on the client
@@ -28,10 +29,23 @@ const Auth = () => {
       setOktaAuth(auth);
     } catch (error) {
       console.error("Error initializing Okta Auth:", error);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
-  // If we're on the server or OktaAuth isn't initialized yet, show a simple version
+  // Show loading state
+  if (isLoading) {
+    return (
+      <Theme accentColor="blue" appearance="light">
+        <div className="flex justify-center items-center h-screen">
+          <p>Loading authentication...</p>
+        </div>
+      </Theme>
+    );
+  }
+
+  // If we're on the server or OktaAuth isn't initialized yet, show the regular login
   if (!isClient || !oktaAuth) {
     return (
       <Theme accentColor="blue" appearance="light">
@@ -40,11 +54,10 @@ const Auth = () => {
     );
   }
 
-  // Just render the Login component directly instead of using OktaWrapper
-  // This avoids mixing Next.js routing with React Router
+  // Use OktaWrapper for client-side authentication
   return (
     <Theme accentColor="blue" appearance="light">
-      <Login />
+      <OktaWrapper oktaAuth={oktaAuth} />
     </Theme>
   );
 };
