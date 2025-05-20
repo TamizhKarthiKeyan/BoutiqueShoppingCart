@@ -4,12 +4,10 @@ import { OktaAuthOptions } from '@okta/okta-auth-js';
 
 // Okta configuration
 export const oktaConfig: OktaAuthOptions = {
-  clientId: "YwgrsYoK1LSPkVXTleX90rVyvjpWkheF", // Updated client ID
-  issuer: "https://dev-12345678.okta.com/oauth2/default", // Replace with your actual Okta domain
-  redirectUri: typeof window !== "undefined" 
-    ? window.location.origin + "/login/callback" 
-    : "",
-  scopes: ["openid", "profile", "email", "api://default"],
+  clientId: "0oaotnogvvUQWVgax5d7", // Client ID from backend/.env
+  issuer: "https://dev-72218607.okta.com/oauth2/default", // Okta domain from backend/.env
+  redirectUri: "http://localhost:3000/login/callback",
+  scopes: ["openid", "profile", "email"],
   pkce: true,
   tokenManager: {
     storage: 'localStorage'

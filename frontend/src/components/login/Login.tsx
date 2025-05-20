@@ -1,89 +1,25 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from "@/components/ui/button";
-import { ChevronRight, MailOpen, LockIcon, AlertCircle } from "lucide-react";
-import FloatingLabelInput from "../ui/FloatingLabelInput";
-import Link from "next/link"; // Use Next.js Link
-import { useRouter } from "next/navigation";
+import { AlertCircle } from "lucide-react";
+import { useAuth } from '@/hooks/useAuth';
 
-const Login = () => {
-    const router = useRouter();
+function Login() {
+  const { login, isLoading, error: authError } = useAuth();
+  const [error, setError] = useState<string | null>(authError?.message || null);
+  const router = useRouter();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({ email: "", password: "" });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Email validation function
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  // Handle input changes
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.value,'e.target.value');
-    setEmail(e.target.value);
-    if (errors.email) {
-      setErrors({ ...errors, email: "" });
-    }
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-    if (errors.password) {
-      setErrors({ ...errors, password: "" });
-    }
-  };
-
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Reset errors
-    const newErrors = { email: "", password: "" };
-    let hasError = false;
-    // Validate email
-    if (!email.trim()) {
-      newErrors.email = "Email is required";
-      hasError = true;
-    } else if (!validateEmail(email)) {
-      newErrors.email = "Please enter a valid email";
-      hasError = true;
-    }
-
-    // Validate password
-    if (!password.trim()) {
-      newErrors.password = "Password is required";
-      hasError = true;
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-      hasError = true;
-    }
-
-    // If there are errors, update state and return
-    if (hasError) {
-      setErrors(newErrors);
-      return;
-    }
-
-    // Proceed with login
-    setIsSubmitting(true);
+  const handleOktaLogin = async () => {
+    setError(null);
     try {
-      // Here you would typically call your authentication API
-      console.log("Logging in with:", { email, password });
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      // If successful, you might redirect or update state
-      alert("Login successful!");
-      router.push("/signup");
-    } catch (error) {
-      console.error("Login error:", error);
-      setErrors({
-        ...newErrors,
-        email: "Invalid email or password"
-      });
-    } finally {
-      setIsSubmitting(false);
+      await login();
+      // The redirect will be handled by Okta
+    } catch (err) {
+      console.error('Error during login:', err);
+      setError('Failed to initiate login. Please try again.');
     }
   };
 
@@ -99,7 +35,11 @@ const Login = () => {
           <p className="text-[#565657] text-base font-bold text-center p-8">Don't have an account?</p>
           <div className="flex justify-center text-white">
             <Link href="/signup">
-              <Button variant="outline" size="custom" className="text-black">
+              <Button 
+                variant="outline" 
+                size="custom" 
+                className="text-black"
+              >
                 Register
               </Button>
             </Link>
@@ -109,54 +49,36 @@ const Login = () => {
       
       {/* Right Div */}
       <div className="flex flex-col justify-center w-1/2 p-4 pb-10 gap-4 sm:p-40 rounded shadow-lg bg-[#F8F9FE]">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <FloatingLabelInput 
-              label="Email" 
-              type="email" 
-              placeholder="" 
-              value={email}
-              onChange={handleEmailChange}
-            />
-            {errors.email && (
-              <div className="text-red-500 text-sm mt-1 flex items-center">
-                <AlertCircle size={16} className="mr-1" />
-                {errors.email}
-              </div>
-            )}
-          </div>
+        <div className="flex flex-col items-center gap-6">
+          <h2 className="text-2xl font-bold text-center">Sign in with Okta</h2>
           
-          <div>
-            <FloatingLabelInput 
-              label="Password" 
-              type="password" 
-              placeholder="" 
-              value={password}
-              onChange={handlePasswordChange}
-            />
-            {errors.password && (
-              <div className="text-red-500 text-sm mt-1 flex items-center">
-                <AlertCircle size={16} className="mr-1" />
-                {errors.password}
-              </div>
-            )}
-          </div>
+          {error && (
+            <div className="text-red-500 text-sm mt-1 flex items-center">
+              <AlertCircle size={16} className="mr-1" />
+              {error}
+            </div>
+          )}
           
-          <div className="flex justify-center text-white mt-4">
-            <Button 
-              type="submit"
-              variant="outline" 
-              size="custom" 
-              className="text-customText bg-[#5861AE]"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Signing In..." : "Sign In"}
-            </Button>
+          <Button 
+            onClick={handleOktaLogin}
+            variant="outline" 
+            size="custom" 
+            className="text-white bg-[#5861AE] px-8 py-3"
+            disabled={isLoading}
+          >
+            {isLoading ? "Signing In..." : "Sign In with Okta"}
+          </Button>
+          
+          <div className="text-center mt-4">
+            <p className="text-gray-600">Or</p>
+            <Link href="/auth/local" className="text-blue-600 hover:underline mt-2 inline-block">
+              Sign in with email and password
+            </Link>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
-};
+}
 
 export default Login;

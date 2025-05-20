@@ -1,61 +1,80 @@
-import express, { Request, Response } from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import { expressjwt as jwt } from 'express-jwt';
-import jwksRsa from 'jwks-rsa';
+const express = require('express');
+const session = require('express-session');
+const { ExpressOIDC } = require('@okta/oidc-middleware');
+const path = require('path');
+const dotenv = require('dotenv');
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'this-should-be-very-secure-in-production',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
 }));
-app.use(express.json());
 
-// JWT validation middleware
-const checkJwt = jwt({
-  secret: jwksRsa.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: `${process.env.OKTA_ISSUER}/.well-known/jwks.json`
-  }),
-  audience: process.env.OKTA_AUDIENCE,
-  issuer: process.env.OKTA_ISSUER,
-  algorithms: ['RS256']
+// Okta OIDC configuration
+const oidc = new ExpressOIDC({
+  issuer: `${process.env.OKTA_ORG_URL}/oauth2/default`,
+  client_id: process.env.OKTA_CLIENT_ID,
+  client_secret: process.env.OKTA_CLIENT_SECRET,
+  appBaseUrl: process.env.APP_BASE_URL || 'http://localhost:3000',
+  scope: 'openid profile email'
 });
 
-// Public route
-app.get('/api/public', (req: Request, res: Response) => {
-  res.json({
-    message: 'This is a public endpoint - no authentication required.'
-  });
+// Initialize the OIDC middleware
+app.use(oidc.router);
+
+// Middleware to check authentication status
+const ensureAuthenticated = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/login');
+};
+
+// Public routes
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Protected route - requires valid JWT
-app.get('/api/protected', checkJwt, (req: Request, res: Response) => {
-  res.json({
-    message: 'This is a protected endpoint - valid JWT required.',
-    user: req.auth // Contains the user claims from the JWT
-  });
+app.get('/login', (req, res) => {
+  // The login page is handled by Okta
+  res.redirect('/login');
 });
 
-// User profile route - requires valid JWT
-app.get('/api/user/profile', checkJwt, (req: Request, res: Response) => {
-  // The user information is available in req.auth
-  res.json({
-    message: 'User profile retrieved successfully',
-    profile: req.auth
-  });
+// OAuth callback route is automatically handled by oidc middleware
+
+// Protected routes
+app.get('/dashboard', ensureAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
+
+// API route to get user information
+app.get('/api/user', ensureAuthenticated, (req, res) => {
+  res.json(req.userContext.userinfo);
+});
+
+// Logout route
+app.get('/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
+});
+
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+oidc.on('ready', () => {
+  app.listen(process.env.PORT || 3000, () => {
+    console.log(`Server running on port ${process.env.PORT || 3000}`);
+  });
+});
+
+oidc.on('error', err => {
+  console.error('OIDC error', err);
 });
