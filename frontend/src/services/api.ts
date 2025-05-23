@@ -14,8 +14,11 @@ const getAccessToken = async (): Promise<string | null> => {
   if (!oktaAuth) return null;
   
   try {
-    const { accessToken } = await oktaAuth.tokenManager.getTokens();
-    return accessToken.accessToken;
+    const tokens = await oktaAuth.tokenManager.getTokens();
+    if (tokens && tokens.accessToken) {
+      return tokens.accessToken.accessToken;
+    }
+    return null;
   } catch (error) {
     console.error('Error getting access token:', error);
     return null;

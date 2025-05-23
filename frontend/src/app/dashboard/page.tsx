@@ -13,7 +13,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute>       
       {user ? (
         <Dashboard user={user} />
       ) : (

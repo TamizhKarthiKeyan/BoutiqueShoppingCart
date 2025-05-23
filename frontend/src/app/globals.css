@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Import Okta Sign-In Widget CSS */
+@import '@okta/okta-signin-widget/css/okta-sign-in.min.css';
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -145,4 +148,29 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom styles for Okta Sign-In Widget */
+#okta-signin-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Override Okta widget styles to match your app's theme */
+.okta-sign-in-header {
+  border-bottom: none !important;
+}
+
+.okta-form-title {
+  color: #5861AE !important;
+}
+
+.o-form-button-bar .button {
+  background-color: #5861AE !important;
+  border-color: #5861AE !important;
+}
+
+.o-form-button-bar .button:hover {
+  background-color: #4a5299 !important;
 }

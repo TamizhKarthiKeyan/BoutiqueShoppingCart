@@ -22,7 +22,7 @@ const OktaLoginPage = () => {
 
   // Handle Okta login
   const handleOktaLogin = async () => {
-    setIsLoading(true);
+    setIsLoading(false);
     setError(null);
     
     try {
@@ -68,7 +68,7 @@ const OktaLoginPage = () => {
   return (
     <div className="flex min-h-screen w-full p-20">
       {/* Left Div */}
-      <div className="flex flex-col justify-center w-1/2 bg-white p-20">
+      {/*<div className="flex flex-col justify-center w-1/2 bg-white p-20">
         <div className="flex flex-col items-center justify-center">
           <p className="text-purple-900 text-3xl font-bold text-center">Boutique Laundry Service</p>
           <p className="text-[#565657] text-base font-bold text-center">They specialize in selling fashionable clothing, accessories, and sometimes unique gifts or home goods.</p>        
@@ -87,7 +87,7 @@ const OktaLoginPage = () => {
             </Button>
           </div>
         </div>
-      </div>
+      </div>*/}
       
       {/* Right Div */}
       <div className="flex flex-col justify-center w-1/2 p-4 pb-10 gap-4 sm:p-40 rounded shadow-lg bg-[#F8F9FE]">

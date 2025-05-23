@@ -8,7 +8,7 @@ import { Theme } from "@radix-ui/themes";
 const LocalAuth = () => {
   return (
     <Theme accentColor="blue" appearance="light">
-      <Login />
+      <Login mode="local" />
     </Theme>
   );
 };

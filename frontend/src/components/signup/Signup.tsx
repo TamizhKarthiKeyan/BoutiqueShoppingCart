@@ -16,7 +16,7 @@ const Signup = () => {
 
   // Handle Okta signup
   const handleOktaSignup = async () => {
-    setIsLoading(true);
+        setIsLoading(true);
     setError(null);
     
     try {
@@ -30,7 +30,11 @@ const Signup = () => {
         scopes: oktaAuth.options.scopes || ['openid', 'email', 'profile'],
         responseType: ['code'],
         extraParams: {
-          prompt: 'signup'
+          prompt: 'login',
+          // Use idp or other parameters to direct to signup instead
+          // For example, you might use a specific IDP or a custom parameter
+          // that your Okta configuration recognizes for signup
+          display: 'page'
         }
       });
     } catch (err) {
@@ -43,7 +47,7 @@ const Signup = () => {
   return (
     <div className="flex min-h-screen w-full p-20">
       {/* Left Div */}
-      <div className="flex flex-col justify-center w-1/2 bg-white p-20">
+      {/*<div className="flex flex-col justify-center w-1/2 bg-white p-20">
         <div className="flex flex-col items-center justify-center">
           <p className="text-purple-900 text-3xl font-bold text-center">Boutique Laundry Service</p>
           <p className="text-[#565657] text-base font-bold text-center">They specialize in selling fashionable clothing, accessories, and sometimes unique gifts or home goods.</p>        
@@ -62,7 +66,7 @@ const Signup = () => {
             </Link>
           </div>
         </div>
-      </div>
+      </div>*/}
       
       {/* Right Div */}
       <div className="flex flex-col justify-center w-1/2 p-4 pb-10 gap-4 sm:p-40 rounded shadow-lg bg-[#F8F9FE]">
